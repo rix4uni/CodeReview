@@ -1,0 +1,64 @@
+# NOTE! This docker container has hard-coded values for passwords - this is intentional as this is testing machine. DO NOT EXPOSE TO THE INTERNET.
+
+services:
+  database:
+    image: mariadb:latest
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 'KZ_ROOT_PASSWD'
+      MYSQL_DATABASE: 'KZ_WP_DB'
+      MYSQL_USER: 'KZ_WP_DB_USER'
+      MYSQL_PASSWORD: 'KZ_WP_DB_PASSWD'
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - wordpress-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    mem_limit: 2048m
+
+  phpmyadmin:
+    depends_on:
+      database:
+        condition: service_healthy
+    image: phpmyadmin:latest
+    restart: unless-stopped
+    ports:
+      - 1338:80
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: 'KZ_ROOT_PASSWD'
+    networks:
+      - wordpress-network
+
+  wordpress:
+    depends_on:
+      database:
+        condition: service_healthy
+    image: wordpress:latest
+    restart: unless-stopped
+    ports:
+      - 1337:80
+    environment:
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_NAME: 'KZ_WP_DB'
+      WORDPRESS_DB_USER: 'KZ_WP_DB_USER'
+      WORDPRESS_DB_PASSWORD: 'KZ_WP_DB_PASSWD'
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+      - ./php.ini:/usr/local/etc/php/conf.d/custom.ini
+    networks:
+      - wordpress-network
+
+volumes:
+  db-data:
+
+networks:
+  wordpress-network:
+    driver: bridge
