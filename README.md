@@ -12,11 +12,8 @@ docker compose up
 ```console
 docker compose up
 
-Database: wordpress
-
-Username or Email Address:
-User: admin
-Email: admin@wordpress.com
-
+Site Title: wordpress
+Username: admin
 Password: admin@4321##
+Email: admin@wordpress.com
 ```
