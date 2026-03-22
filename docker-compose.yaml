@@ -56,6 +56,26 @@ services:
     networks:
       - wordpress-network
 
+  urls:
+    image: alpine:latest
+    depends_on:
+      wordpress:
+        condition: service_started
+      phpmyadmin:
+        condition: service_started
+    network_mode: host
+    restart: "no"
+    command: >
+      sh -c "
+        IP=$$(ip route get 1 | awk '{print $$7; exit}');
+        echo '';
+        echo '==========================================';
+        echo '  WordPress : http://'$$IP':1337';
+        echo '  phpMyAdmin: http://'$$IP':1338';
+        echo '==========================================';
+        echo '';
+      "
+
 volumes:
   db-data:
 
